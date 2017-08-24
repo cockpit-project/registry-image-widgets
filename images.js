@@ -167,7 +167,8 @@ angular.module('registryUI.images', [
 .directive('registryImageBody', [
     'imageLayers',
     'imageDockerConfig',
-    function(imageLayers, imageDockerConfig) {
+    'imageSignatures',
+    function(imageLayers, imageDockerConfig, imageSignatures) {
         return {
             restrict: 'E',
             scope: {
@@ -180,6 +181,7 @@ angular.module('registryUI.images', [
                     scope.layers = imageLayers(image);
                     scope.config = imageDockerConfig(image);
                     scope.labels = scope.config.Labels;
+                    scope.signatures = imageSignatures(image);
                     if (angular.equals({ }, scope.labels))
                         scope.labels = null;
                 });
@@ -228,6 +230,37 @@ angular.module('registryUI.images', [
 
                 scope.$watch("image", function(image) {
                     scope.config = imageDockerConfig(image);
+                });
+            }
+        };
+    }
+])
+
+.directive('registryImageSignatures', [
+    'imageSignatures',
+    function(imageSignatures) {
+        return {
+            restrict: 'E',
+            scope: {
+                image: '=',
+            },
+            templateUrl: 'registry-image-widgets/views/image-signatures.html',
+            link: function(scope, element, attrs) {
+                scope.signatureDetails = function signatureDetails(signature) {
+                    var result = "";
+                    if (signature.conditions) {
+                        var condition = signature.conditions.find(function (condition) {
+                            return condition.type === "Trusted";
+                        });
+                        if (condition !== undefined) {
+                            result = condition.reason + " / " + condition.message;
+                        }
+                    }
+                    return result;
+                };
+
+                scope.$watch("image", function(image) {
+                    scope.signatures = imageSignatures(image);
                 });
             }
         };
@@ -312,11 +345,54 @@ angular.module('registryUI.images', [
     }
 ])
 
+.factory('imageSignatures', [
+    'WeakMap',
+    function(WeakMap) {
+        var weak = new WeakMap();
+
+        return function(image) {
+            if (!image)
+                return [];
+            var signatures = weak.get(image);
+
+
+            var signatureStatus = function(signature) {
+                var trusted = "Unverified";
+                if (signature.conditions) {
+                    var condition = signature.conditions.find(function (condition) {
+                        return condition.type === "Trusted";
+                    });
+                    if (condition !== undefined) {
+                        trusted = "Verified";
+                    } else {
+                        // Failed info not available
+                        // https://github.com/openshift/origin/issues/16301
+                        trusted = "Failed verification";
+                    }
+                }
+                return trusted;
+            };
+
+            if (!signatures && image.signatures) {
+                signatures = [];
+                image.signatures.forEach(function(signature) {
+                    signature.verified = signatureStatus(signature);
+                    signatures.push(signature);
+                });
+                weak.set(image, signatures);
+            }
+
+            return signatures || [];
+        };
+    }
+])
+
 .factory('registryImageListingFunc', [
     'imagestreamTags',
     'imagestreamTagFromName',
+    'imageSignatures',
     '$location',
-    function(imagestreamTags, imagestreamTagFromName, $location) {
+    function(imagestreamTags, imagestreamTagFromName, imageSignatures, $location) {
         return function(scope, element, attrs) {
             scope.imagestreamTags = imagestreamTags;
             scope.imagestreamPath = scope.imagestreamFunc();
@@ -324,6 +400,30 @@ angular.module('registryUI.images', [
             scope.imageTagNames = scope.imageTagNamesFunc();
             scope.sharedImages = scope.sharedImagesFunc();
             scope.imagestreamTagFromName = imagestreamTagFromName;
+            scope.imageSignatures = imageSignatures;
+
+            scope.overallVerification = function overallVerification(tag) {
+                var image, signature, signatures;
+                var overall = "Unverified";
+
+                image = scope.imageByTag(tag.status);
+                signatures = scope.imageSignatures(image);
+
+                if (signatures.length === 0) {
+                    return "Unsigned";
+                } else {
+                    signatures.forEach(function(signature) {
+                        var status = signature.verified;
+                        if (status === "Failed verification" || overall === "Failed verification" || overall === undefined) {
+                            overall = status;
+                        } else if (status !== "Failed verification") {
+                            overall = status;
+                        }
+                    });
+                }
+
+                return overall;
+            };
 
             /* Called when someone clicks on a row */
             scope.imagestreamActivate = function imagestreamActivate(imagestream, tag, ev) {
@@ -410,7 +510,8 @@ angular.module('registryUI.images', [
 .directive('registryImagePanel', [
     'imageDockerConfig',
     'imageLayers',
-    function(imageDockerConfig, imageLayers) {
+    'imageSignatures',
+    function(imageDockerConfig, imageLayers, imageSignatures) {
         return {
             restrict: 'E',
             transclude: true,
@@ -435,6 +536,7 @@ angular.module('registryUI.images', [
                         scope.layers = imageLayers(scope.image);
                         scope.config = imageDockerConfig(scope.image);
                         scope.labels = scope.config.Labels;
+                        scope.signatures = imageSignatures(scope.image);
                         if (scope.imageTagNames)
                             scope.names = scope.imageTagNames(scope.image);
                     }

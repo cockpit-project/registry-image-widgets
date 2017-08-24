@@ -14,6 +14,9 @@
             <li ng-class="{active: tab('meta')}">
                 <a ng-click="tab('meta', $event)" translate>Metadata</a>
             </li>
+            <li ng-class="{active: tab('signatures')}">
+                <a ng-click="tab('signatures', $event)" translate>Signatures</a>
+            </li>
         </ul>
     </div>
 
@@ -34,5 +37,10 @@
         </registry-image-meta>
         <registry-image-layers image="image" layers="layers">
         </registry-image-layers>
+    </div>
+
+    <div class="listing-ct-body" ng-show="tab('signatures')">
+        <registry-image-signatures image="image">
+        </registry-image-signatures>
     </div>
 </div>

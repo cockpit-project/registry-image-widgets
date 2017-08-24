@@ -5,6 +5,7 @@
             <th translate="yes" width="20%">Tag</th>
             <th translate="yes">From</th>
             <th translate="yes">Identifier</th>
+            <th translate="yes">Signatures</th>
             <th translate="yes">Last Updated</th>
         </tr>
     </thead>
@@ -54,6 +55,17 @@
                     </div>
                 </div>
             </td>
+            <td class="image-signature">
+              <div>
+                <span class="pficon pficon-ok"
+                      ng-if="overallVerification(tag) == 'Verified'"></span>
+                <span class="pficon pficon-error-circle-o"
+                      ng-if="overallVerification(tag) == 'Failed verification'"></span>
+                <span class="pficon pficon-warning-triangle-o"
+                      ng-if="overallVerification(tag) === 'Unverified'"></span>
+                <span translate="yes">{{ overallVerification(tag) }}</span>
+              </div>
+            </td>
             <td>
                 <div title="{{ tag.items[0].created }}">
                     <span ng-if="tag.status.items.length &amp;&amp; tag.status.items[0].image" title="{{ tag.items[0].created }}">
@@ -63,15 +75,15 @@
             </td>
         </tr>
         <tr class="listing-ct-panel" ng-if="imagestreamExpanded(imagestream, tag)" ng-repeat-end="">
-            <td colspan="5">
+            <td colspan="6">
                 <registry-image-panel ng-init="tag = tag.status"></registry-image-panel>
             </td>
         </tr>
     </tbody>
     <thead class="listing-ct-empty" ng-if="!quiet">
         <tr>
-            <td colspan="5" ng-if="!failure && !imagestreamTags(imagestream).length" translate="yes">No tags are present.</td>
-            <td colspan="5" ng-if="failure">{{failure}}</td>
+            <td colspan="6" ng-if="!failure && !imagestreamTags(imagestream).length" translate="yes">No tags are present.</td>
+            <td colspan="6" ng-if="failure">{{failure}}</td>
         </tr>
     </thead>
 </table>

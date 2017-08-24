@@ -1,0 +1,21 @@
+<div class="row" ng-repeat="signature in signatures">
+  <dt translate><b>Signature</b></dt>
+  <dd>{{ signature.metadata.name }}</dd>
+  <dt translate>Verified</dt>
+  <dd>
+    <span class="pficon pficon-ok" style="margin-right: 5px;"
+          ng-if="signature.verified == 'Verified'"></span>
+    <span class="pficon pficon-error-circle-o" style="margin-right: 5px;"
+          ng-if="signature.verified == 'Failed verification'"></span>
+    <span class="pficon pficon-warning-triangle-o" style="margin-right: 5px;"
+          ng-if="signature.verified === 'Unverified'"></span>
+    <span translate="yes">{{ signature.verified }}</span>
+  </dd>
+  <span ng-if="signature.verified == 'Verified'">
+    <dt translate>Details</dt>
+    <dd>{{signatureDetails(signature)}}</dd>
+  </span>
+</div>
+<div class="row" ng-if="signatures.length == 0">
+  <span translate>No signatures</span>
+</div>
