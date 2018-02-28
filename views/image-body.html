@@ -7,7 +7,7 @@
     <dd ng-if="labels.description">{{ labels.description }}</dd>
     <dt ng-if="labels.url" translate>Source URL</dt>
     <dd ng-if="labels.url">
-        <a href="labels.url"><i class="fa fa-external-link"></i> {{ labels.url }}</a>
+        <a href="labels.url">{{ labels.url }} <i class="fa fa-external-link" aria-hidden="true"></i></a>
     </dd>
     <dt translate>Author</dt>
     <dd ng-if="config.author">{{config.author}}</dd>
