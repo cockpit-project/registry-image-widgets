@@ -24,6 +24,7 @@ module.exports = {
             srcdir + "views/image-config.html",
             srcdir + "views/image-meta.html",
             srcdir + "views/image-layers.html",
+            srcdir + "views/image-signatures.html",
             srcdir + "views/image-panel.html",
             srcdir + "views/image-pull.html",
             srcdir + "views/image-listing.html",
